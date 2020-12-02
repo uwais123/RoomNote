@@ -104,21 +104,6 @@ class NoteAddUpdateActivity : AppCompatActivity() {
         return ViewModelProvider(activity, factory).get(NoteAddUpdateViewModel::class.java)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        if (isEdit) {
-            menuInflater.inflate(R.menu.menu_main, menu)
-        }
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
-            R.id.action_delete -> showAlertDialog(ALERT_DIALOG_DELETE)
-            R.id.home -> showAlertDialog(ALERT_DIALOG_CLOSE)
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     override fun onBackPressed() {
         showAlertDialog(ALERT_DIALOG_CLOSE)
     }

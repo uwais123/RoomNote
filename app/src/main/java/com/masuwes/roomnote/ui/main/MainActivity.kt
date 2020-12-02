@@ -3,12 +3,16 @@ package com.masuwes.roomnote.ui.main
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.paging.PagedList
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.masuwes.roomnote.R
 import com.masuwes.roomnote.database.Note
+import com.masuwes.roomnote.helper.SortUtils
 import com.masuwes.roomnote.helper.ViewModelFactory
 import com.masuwes.roomnote.ui.insert.NoteAddUpdateActivity
 import kotlinx.android.synthetic.main.activity_main.*
@@ -16,7 +20,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mNoteAdapter: NoteAdapter
+    private lateinit var mNoteAdapter: NotePagedListAdapter
     private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,9 +28,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         viewModel = obtainViewModel(this@MainActivity)
-        viewModel.getAllNotes().observe(this, noteObserver)
+        viewModel.getAllNotes(SortUtils.NEWEST).observe(this, noteObserver)
 
-        mNoteAdapter = NoteAdapter(this@MainActivity)
+        mNoteAdapter = NotePagedListAdapter(this@MainActivity)
 
         with(rv_notes) {
             layoutManager = LinearLayoutManager(this@MainActivity)
@@ -42,9 +46,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val noteObserver = Observer<List<Note>> { noteList ->
+    private val noteObserver = Observer<PagedList<Note>> { noteList ->
         if (noteList != null) {
-            mNoteAdapter.setListNotes(noteList)
+            mNoteAdapter.submitList(noteList)
         }
     }
 
@@ -72,6 +76,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun showSnackbarMessage(message: String) {
         Snackbar.make(rv_notes, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        var sort = ""
+        when(item.itemId) {
+            R.id.action_newest -> sort = SortUtils.NEWEST
+            R.id.action_oldest -> sort = SortUtils.OLDEST
+            R.id.action_random -> sort = SortUtils.RANDOM
+        }
+        viewModel.getAllNotes(sort).observe(this, noteObserver)
+        item.isChecked = true
+        return super.onOptionsItemSelected(item)
     }
 
 }

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
+import java.util.concurrent.Executors
 
 @Database(entities = [Note::class], version = 1)
 abstract class NoteRoomDatabase : RoomDatabase() {
@@ -20,13 +22,30 @@ abstract class NoteRoomDatabase : RoomDatabase() {
                     if (INSTANCE == null) {
                         INSTANCE = Room.databaseBuilder(
                             context.applicationContext,
-                            NoteRoomDatabase::class.java, "note_database"
-                        )
+                            NoteRoomDatabase::class.java, "note_database")
+                            .addCallback(object : Callback() {
+                                override fun onCreate(db: SupportSQLiteDatabase) {
+                                    add()
+                                }
+                            })
                             .build()
                     }
                 }
             }
             return INSTANCE as NoteRoomDatabase
+        }
+
+         fun add() {
+            Executors.newSingleThreadExecutor().execute {
+                val list: MutableList<Note> = ArrayList()
+                for (i in 0 until 9) {
+                    val dummy = Note()
+                    dummy.title = "Tugas $i"
+                    dummy.description = "Belajar di module $i"
+                    dummy.date = "2019/09/09 09:09:0$i"
+                }
+                INSTANCE?.noteDao()?.insertAll(list)
+            }
         }
     }
 
